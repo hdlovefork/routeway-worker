@@ -1,0 +1,12 @@
+<?php
+
+namespace DummyNamespace;
+
+use Dean\RoutewayWorker\Requests\SocketRequest;
+
+class DummyClass
+{
+    public function handle(SocketRequest $request){
+    
+    }
+}

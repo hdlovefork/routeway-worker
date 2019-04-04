@@ -1,0 +1,20 @@
+{
+    "name": "dean/routeway-worker",
+    "description": "base on gateway worker",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "laravel/framework": "^5.5",
+        "workerman/gateway-worker": "^3.0",
+        "liyu/dingo-serializer-switch": "^0.3.1",
+        "dingo/api": "^2.0.0-alpha2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Dean\\RoutewayWorker\\": "src/"
+        },
+        "files": [
+            "src/bootstrap/helper.php"
+        ]
+    }
+}
