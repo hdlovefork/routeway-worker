@@ -84,7 +84,7 @@ class SocketRequest extends Request implements ValidatesWhenResolved
     protected function createDefaultValidator(ValidationFactory $factory)
     {
         return $factory->make(
-            $this->msg?:[], $this->container->call([$this, 'rules']),
+            $this->msg ?: [], $this->container->call([$this, 'rules']),
             $this->messages(), $this->attributes()
         );
     }
@@ -97,5 +97,15 @@ class SocketRequest extends Request implements ValidatesWhenResolved
     public function __get($name)
     {
         return array_get($this->msg, $name, null);
+    }
+    
+    public function only($keys)
+    {
+        return array_only($this->msg, $keys);
+    }
+    
+    public function input($key, $default = null)
+    {
+        return array_get($this->msg, $key, $default);
     }
 }
