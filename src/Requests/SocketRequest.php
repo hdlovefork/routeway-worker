@@ -39,7 +39,7 @@ class SocketRequest extends Request implements ValidatesWhenResolved
      */
     public function validateResolved()
     {
-        Log::debug('SocketPacket->validateResolved');
+        Log::debug('SocketRequest->validateResolved');
         $instance = $this->validator ?: $this->getValidatorInstance();
         if ($instance->fails()) {
             throw new ValidationException($instance);
@@ -84,7 +84,7 @@ class SocketRequest extends Request implements ValidatesWhenResolved
     protected function createDefaultValidator(ValidationFactory $factory)
     {
         return $factory->make(
-            $this->msg, $this->container->call([$this, 'rules']),
+            $this->msg?:[], $this->container->call([$this, 'rules']),
             $this->messages(), $this->attributes()
         );
     }

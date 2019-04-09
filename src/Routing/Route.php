@@ -37,7 +37,11 @@ class Route
     public function run($request)
     {
         try {
-            $this->container->call("{$this->action['uses']}@handle", [$request]);
+            if(is_callable($this->action['uses'])){
+                $this->container->call($this->action['uses'], [$request]);
+            }else{
+                $this->container->call("{$this->action['uses']}@handle", [$request]);
+            }
         } catch (ValidationException $e) {
             response_error($request->client_id, $e->validator->errors()->first());
         } catch (\Exception $e) {

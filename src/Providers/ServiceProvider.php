@@ -55,6 +55,10 @@ class ServiceProvider extends LaravelServiceProvider
         
         $this->publishes([
             __DIR__ . '/../routes/routeway.php' => base_path('routes/routeway.php'),
-        ], 'route');
+            __DIR__ . '/../config/routeway.php' => base_path('config/routeway.php'),
+            __DIR__ . '/../resources/lang/en/routeway.php' => resource_path('lang/en/routeway.php'),
+            __DIR__ . '/../resources/lang/zh-CN/routeway.php' => resource_path('lang/zh-CN/routeway.php'),
+            
+        ], 'routeway');
     }
 }

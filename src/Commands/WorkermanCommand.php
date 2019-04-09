@@ -2,7 +2,6 @@
 
 namespace Dean\RoutewayWorker\Commands;
 
-use Dean\RoutewayWorker\Routing\Events;
 use Dean\RoutewayWorker\Routing\Router;
 use GatewayWorker\BusinessWorker;
 use GatewayWorker\Gateway;
@@ -19,7 +18,7 @@ class WorkermanCommand extends LaravelCommand
      * @var string
      */
     protected $signature = 'workerman {action} {--d}';
-
+    
     /**
      * The console command description.
      *
@@ -30,7 +29,7 @@ class WorkermanCommand extends LaravelCommand
      * @var Router
      */
     private $router;
-
+    
     /**
      * Create a new command instance.
      *
@@ -42,7 +41,7 @@ class WorkermanCommand extends LaravelCommand
         $this->listenLog();
         $this->router = $router;
     }
-
+    
     /**
      * Execute the console command.
      *
@@ -53,17 +52,17 @@ class WorkermanCommand extends LaravelCommand
         $this->checkEnv();
         global $argv;
         $action = $this->argument('action');
-
+        
         $argv[0] = 'wk';
         $argv[1] = $action;
         $argv[2] = $this->option('d') ? '-d' : '';
-
+        
         $this->start();
     }
-
+    
     private function start()
     {
-        Worker::$logFile = storage_path('logs') . '/workerman.log';
+        Worker::$logFile = config('worker_logFile');
         $this->startGateWay();
         $this->startBusinessWorker();
         $this->startRegister();
@@ -71,44 +70,45 @@ class WorkermanCommand extends LaravelCommand
         $this->registerMiddleware();
         Worker::runAll();
     }
-
+    
     private function startBusinessWorker()
     {
         $worker                  = new BusinessWorker();
-        $worker->name            = 'BusinessWorker';
-        $worker->count           = 1;
-        $worker->registerAddress = '127.0.0.1:1236';
-        $worker->eventHandler    = Events::class;
+        $worker->name            = config('routeway.worker_name');
+        $worker->count           = config('routeway.worker_count');
+        $worker->registerAddress = config('routeway.worker_registerAddress');
+        $worker->eventHandler    = config('routeway.worker_eventHandler');
     }
-
+    
     private function startGateWay()
     {
         // gateway 进程，这里使用Text协议，可以用telnet测试
-        $gateway = new Gateway("websocket://0.0.0.0:2345");
+//        $gateway = new Gateway("websocket://0.0.0.0:2345");
+        $gateway = new Gateway(config('routeway.gateway_socketName'));
         // gateway名称，status方便查看
-        $gateway->name = 'Gateway';
+        $gateway->name = config('routeway.gateway_name');
         // gateway进程数
-        $gateway->count = 4;
+        $gateway->count = config('routeway.gateway_count');
         // 本机ip，分布式部署时使用内网ip
-        $gateway->lanIp = '127.0.0.1';
+        $gateway->lanIp = config('routeway.gateway_lanIp');
         // 内部通讯起始端口，假如$gateway->count=4，起始端口为4000
         // 则一般会使用4000 4001 4002 4003 4个端口作为内部通讯端口
-        $gateway->startPort = 2900;
+        $gateway->startPort = config('routeway.gateway_startPort');
         // 服务注册地址
-        $gateway->registerAddress = '127.0.0.1:1236';
+        $gateway->registerAddress = config('routeway.gateway_registerAddress');
         // 心跳间隔
-        $gateway->pingInterval = 30;
+        $gateway->pingInterval = config('routeway.gateway_pingInterval');
         // 多少次没有收到心跳就断开连接
-        $gateway->pingNotResponseLimit = 3;
+        $gateway->pingNotResponseLimit = config('routeway.gateway_pingNotResponseLimit');
         // 心跳数据
-        $gateway->pingData = '';
+        $gateway->pingData = config('routeway.gateway_pingData');
         if (!app()->environment('production')) {
             // 心跳数据
             $gateway->pingData             = '{"type":"ping"}';
             $gateway->pingNotResponseLimit = 0;
         }
-
-
+        
+        
         /*
         // 当客户端连接上来时，设置连接的onWebSocketConnect，即在websocket握手时的回调
         $gateway->onConnect = function($connection)
@@ -127,35 +127,35 @@ class WorkermanCommand extends LaravelCommand
         };
         */
     }
-
+    
     private function startRegister()
     {
-        new Register('text://0.0.0.0:1236');
+        new Register(config('routeway.register'));
     }
-
+    
     private function checkEnv()
     {
         // 检查扩展
         if (!extension_loaded('pcntl')) {
             $this->error("Please install pcntl extension. See http://doc3.workerman.net/appendices/install-extension.html\n");
         }
-
+        
         if (!extension_loaded('posix')) {
             $this->error("Please install posix extension. See http://doc3.workerman.net/appendices/install-extension.html\n");
         }
     }
-
+    
     private function registerRoute()
     {
         $this->router->loadRoutes(base_path('routes/routeway.php'));
     }
-
+    
     private function registerMiddleware()
     {
         $this->router->middleware('Liyu\Dingo\SerializerSwitch:array');
     }
-
-
+    
+    
     public function listenLog(): void
     {
         app('log')->listen(function (MessageLogged $event) {
