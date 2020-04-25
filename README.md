@@ -23,6 +23,12 @@
 
 # 开始
 
+启动Workman
+
+```
+php artisan workman start -d
+```
+
 ## 闭包处理
 
 假设服务器收到的消息内容如下：
