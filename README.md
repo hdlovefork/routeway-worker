@@ -113,10 +113,12 @@ app\Handlers\LoginHandler.php
 namespace App\Handlers\LoginHandler;
 
 use App\Requests\Socket\LoginRequest;
+user App\User;
 
 class LoginHandler
 {
-	public function handler(LoginRequest $request) 
+  // $user参数自动注入
+	public function handler(LoginRequest $request,User $user) 
 	{
 		$username = $request->username; // dean@example.com
 		$password = $request->password; // 123456
@@ -126,7 +128,7 @@ class LoginHandler
 }
 ```
 
-App\Requests\Socket\LoginRequest用于验证消息体data内的参数格式是否正确
+handler方法中的`User $user`参数将会自动注入，而`LoginRequest $request`用于验证消息体data内的参数格式是否正确
 
 app\Requests\Socket\LoginRequest.php
 
@@ -166,3 +168,25 @@ public class LoginRequest extends SocketRequest
 }
 ```
 
+## helper方法
+
+### 生成回复json字符串
+
+```php
+function make_response(string $type, $data = [], TransformerAbstract $transformer = null, $include = null)
+```
+
+* $type: 自定义消息类型，如“login"
+* $data: 消息数据体，可以是一个数组或者Model
+* $transformer: 如果$data为Model时模型转json的转换器，参照[这里](https://fractal.thephpleague.com/transformers/)
+* $include: 当使用$data为Model时$transformer额外包含的关联数据,参照[这里](https://fractal.thephpleague.com/transformers/)
+
+### 回复错误消息
+
+```php
+function response_error(int $client_id, string $msg, $code = 422)
+```
+
+* $client_id：客户端id
+* $msg: 错误消息内容
+* $code: 错误代码
