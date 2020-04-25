@@ -21,7 +21,7 @@
 * type表示该数据包的类型，值为字符串类型，比如：`"login"`（登录）,`"chat"`(聊天)等，需要开发者自定义；
 * data表示该数据包的主体内容，值为数组或对象；
 
-# 示例
+# 开始
 
 ## 闭包处理
 
@@ -62,22 +62,34 @@ $router->register('hi',function (SocketRequest $request)
 }
 ```
 
-
-
 ## Handler处理
 
-执行以下命令生成消息处理器Handler
+执行以下命令会在app\Handlers\目录下生成消息处理器LoginHandler
 
 ```php artisan make:handler LoginHandler```
 
 然后在routes/routeway.php，添加如下内容：
 
-```
+```php
 $router = app(Dean\RoutewayWorker\Routing\Router::class);
-...
+
 // 使用register方法注册login消息的处理
 $router->register('login', 'App\Handlers\LoginHandler');
+```
 
+使用中间件方式
+
+```php
+$router = app(Dean\RoutewayWorker\Routing\Router::class);
+
+$router->group([
+	'middleware' => App\Socket\Middleware\AnyMiddleware::class
+],function($router){
+		$router->register('login', 'App\Handlers\LoginHandler');
+});
+
+// 或者
+$router->register('login', 'App\Handlers\LoginHandler')->middleware(App\Socket\Middleware\AnyMiddleware::class)
 ```
 
 假设服务器收到的login完整的消息内容如下：
@@ -92,6 +104,8 @@ $router->register('login', 'App\Handlers\LoginHandler');
 	}
 }
 ```
+
+下面我们将读出username和password的值
 
 app\Handlers\LoginHandler.php
 
@@ -112,7 +126,7 @@ class LoginHandler
 }
 ```
 
-上面的LoginRequest用于验证消息体data内的参数格式是否正确
+App\Requests\Socket\LoginRequest用于验证消息体data内的参数格式是否正确
 
 app\Requests\Socket\LoginRequest.php
 
@@ -121,31 +135,32 @@ namespace App\Requests\Socket\LoginRequest;
 
 use Dean\RoutewayWorker\Requests\SocketRequest;
 
-public class LoginRequest extends SocketRequest{
+public class LoginRequest extends SocketRequest
+{
 
 	public function rules() 
 	{
-		return [
-			'username' => 'required|email',
-			'password' => 'required|min:6'
-		];
+        return [
+            'username' => 'required|email',
+            'password' => 'required|min:6'
+        ];
 	}
 	
 	public function messages()
 	{
-		return [
-			'username.required' => '用户名必填',
-			'username.email' 	  => '电子邮箱格式不正确',
-			...
-		];
+        return [
+            'username.required' => '用户名必填',
+            'username.email' 	  => '电子邮箱格式不正确',
+            ...
+        ];
 	}
 	
 	public function attributes()
 	{
     	return [
-        'username' => ’用户名',
-        'password' => '密码',
-      ];
+            'username' => '用户名',
+            'password' => '密码',
+        ];
 	}
 	
 }
