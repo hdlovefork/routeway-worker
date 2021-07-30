@@ -4,6 +4,22 @@
 # 安装
 `composer require dean/routeway-worker`
 
+发布配置文件
+
+`php artisan vendor:public --tag routeway`
+
+将生成路由配置文件`routes/routeway.php`和websocker配置文件`config/routeway.php`
+
+
+# 开始
+
+启动Workman
+
+```
+php artisan workerman start -d
+```
+
+
 # 说明
 客户端和服务器通讯使用JSON格式传输数据，包含`type`和`data`2个字段：
 
@@ -16,18 +32,9 @@
 }
 ```
 
-
-
 * type表示该数据包的类型，值为字符串类型，比如：`"login"`（登录）,`"chat"`(聊天)等，需要开发者自定义；
 * data表示该数据包的主体内容，值为数组或对象；
 
-# 开始
-
-启动Workman
-
-```
-php artisan workman start -d
-```
 
 ## 闭包处理
 
