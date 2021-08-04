@@ -13,12 +13,19 @@
 
 # 开始
 
-启动Workman
+启动Workerman
 
 ```
-php artisan workerman start -d
+php artisan workerman start --d
 ```
 
+停止Workerman
+
+```
+php artisan workerman stop --d
+```
+
+其中`--d`参数表示后台运行服务器，可以不添加
 
 # 说明
 客户端和服务器通讯使用JSON格式传输数据，包含`type`和`data`2个字段：
