@@ -18,7 +18,7 @@ class WorkermanCommand extends LaravelCommand
      * @var string
      */
     protected $signature = 'workerman {action} {--d}';
-    
+
     /**
      * The console command description.
      *
@@ -29,7 +29,7 @@ class WorkermanCommand extends LaravelCommand
      * @var Router
      */
     private $router;
-    
+
     /**
      * Create a new command instance.
      *
@@ -38,10 +38,9 @@ class WorkermanCommand extends LaravelCommand
     public function __construct(Router $router)
     {
         parent::__construct();
-        $this->listenLog();
         $this->router = $router;
     }
-    
+
     /**
      * Execute the console command.
      *
@@ -52,14 +51,14 @@ class WorkermanCommand extends LaravelCommand
         $this->checkEnv();
         global $argv;
         $action = $this->argument('action');
-        
+
         $argv[0] = 'wk';
         $argv[1] = $action;
         $argv[2] = $this->option('d') ? '-d' : '';
-        
+
         $this->start();
     }
-    
+
     private function start()
     {
         Worker::$logFile = config('worker_logFile');
@@ -70,7 +69,7 @@ class WorkermanCommand extends LaravelCommand
         $this->registerMiddleware();
         Worker::runAll();
     }
-    
+
     private function startBusinessWorker()
     {
         $worker                  = new BusinessWorker();
@@ -79,7 +78,7 @@ class WorkermanCommand extends LaravelCommand
         $worker->registerAddress = config('routeway.worker_registerAddress');
         $worker->eventHandler    = config('routeway.worker_eventHandler');
     }
-    
+
     private function startGateWay()
     {
         // gateway 进程，这里使用Text协议，可以用telnet测试
@@ -107,8 +106,8 @@ class WorkermanCommand extends LaravelCommand
             $gateway->pingData             = '{"type":"ping"}';
             $gateway->pingNotResponseLimit = 0;
         }
-        
-        
+
+
         /*
         // 当客户端连接上来时，设置连接的onWebSocketConnect，即在websocket握手时的回调
         $gateway->onConnect = function($connection)
@@ -127,42 +126,31 @@ class WorkermanCommand extends LaravelCommand
         };
         */
     }
-    
+
     private function startRegister()
     {
         new Register(config('routeway.register'));
     }
-    
+
     private function checkEnv()
     {
         // 检查扩展
         if (!extension_loaded('pcntl')) {
             $this->error("Please install pcntl extension. See http://doc3.workerman.net/appendices/install-extension.html\n");
         }
-        
+
         if (!extension_loaded('posix')) {
             $this->error("Please install posix extension. See http://doc3.workerman.net/appendices/install-extension.html\n");
         }
     }
-    
+
     private function registerRoute()
     {
         $this->router->loadRoutes(base_path('routes/routeway.php'));
     }
-    
+
     private function registerMiddleware()
     {
         $this->router->middleware('Liyu\Dingo\SerializerSwitch:array');
-    }
-    
-    
-    public function listenLog(): void
-    {
-        app('log')->listen(function (MessageLogged $event) {
-            $reportLevels = ['debug', 'error'];
-            if (env('APP_DEBUG') && in_array($event->level, $reportLevels)) {
-                $this->info($event->message);
-            }
-        });
     }
 }
